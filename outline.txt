@@ -1,0 +1,13 @@
+1) Read file
+	- Processes are put into a queue which dispenses processes as they 'arrive'
+2) Start simulation
+	- Processes at time 0 are placed into I/O, Waiting, and Ready holders
+	- Time starts incrementing
+	- First print statements are outputted
+3) Increment Timer
+	- Increment up to the next action
+	- Make appropriate changes to queues
+	- Update process wait times
+4) Finish
+	- Final outputs
+	- Rerun with next algorithm
