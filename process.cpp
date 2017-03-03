@@ -1,4 +1,4 @@
-Process:
+/*Process:
 
 //From file
 int burst_time;
@@ -27,4 +27,4 @@ compare(p1, p2){
 
 FCFS: first in first out queue
 SRT: priority queue with compare function
-RR: first in first out queue
+RR: first in first out queue*/
