@@ -11,11 +11,11 @@ public:
 	IO_Queue();
 	int getNextPop() const {return next_pop;}
 	bool isEmpty() {return (processes.size() == 0);}
-	void add(Process p);
-	Process popFront();
+	void add(Process* p);
+	Process* popFront();
 private:
 	int next_pop;
-	std::list<Process> processes;
+	std::list<Process*> processes;
 };
 
 #endif
