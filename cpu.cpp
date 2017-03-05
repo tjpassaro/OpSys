@@ -2,6 +2,7 @@
 #include <iostream>
 #include "process.h"
 #include <list>
+#include <string>
 
 using namespace std;
 
@@ -25,7 +26,7 @@ Cpu::Cpu(char algo_type){
 void Cpu::add(Process* p, int rn){
 	p->moveToReady(rn);
 	if(isEmpty()){
-		next_pop = rn;
+		next_action = rn;
 	}
 	if( flag == 'f' || flag == 'r')
 		fcfs_rr_add(p);
@@ -54,8 +55,8 @@ void Cpu::loadOnCpu(int rn){
 		context_in = ready.front();
 		ready.pop_front();
 		context_in->movedToCntxIn(rn);
-		//Increments the next_pop field
-		next_pop = rn+context_switch_time;
+		//Increments the next_action field
+		next_action = rn+context_switch_time;
 	}
 }
 
@@ -63,22 +64,22 @@ void Cpu::runProcess(int rn){
 	being_processed = context_in;
 	context_in = NULL;
 	being_processed->movedToCpu(rn);
-	//Increments the next_pop field
+	//Increments the next_action field
 	if(flag=='f'||flag=='s')
-		next_pop = p->getRemainingTime()+rn;
+		next_action = being_processed->getRemainingTime()+rn;
 	else //round-robin
-		if(p->getRemainingTime()>t_slice)
-			next_pop = t_slice + rn;
+		if(being_processed->getRemainingTime()>t_slice)
+			next_action = t_slice + rn;
 		else
-			next_pop = p->getRemainingTime() + rn;
+			next_action = being_processed->getRemainingTime() + rn;
 }
 
 void Cpu::unloadOffCpu(int rn){
 	context_out = being_processed;
 	being_processed = NULL;
 	context_out->movedFromCpu(rn);
-	//Increments the next_pop field
-	next_pop = rn+context_switch_time;
+	//Increments the next_action field
+	next_action = rn+context_switch_time;
 }
 
 
@@ -98,14 +99,14 @@ Process* Cpu::popFromCpu(int rn){
 		ready.pop_front();
 		p->movedToCpu(rn, context_switch_time);
 		being_processed = p;
-		//Increments the next_pop field
+		//Increments the next_action field
 		if(flag=='f'||flag=='s')
-			next_pop = p->getRemainingTime()+context_switch_time;
+			next_action = p->getRemainingTime()+context_switch_time;
 		else //round-robin
 			if(p->getRemainingTime()>t_slice)
-				next_pop = t_slice + context_switch_time;
+				next_action = t_slice + context_switch_time;
 			else
-				next_pop = p->getRemainingTime() + context_switch_time;
+				next_action = p->getRemainingTime() + context_switch_time;
 	}
 }*/
 
@@ -131,9 +132,9 @@ string Cpu::printQueue(){
 	if(ready.empty())
 		buf += " <empty>";
 	else{
-		for(list<Process>::iterator itr=ready.begin(); itr != ready.end(); itr++){
+		for(list<Process*>::iterator itr=ready.begin(); itr != ready.end(); itr++){
 			buf += " ";
-			buf += itr->getProcessId();
+			buf += (*itr)->getProcessId();
 		}
 	}
 	buf += "]\n";

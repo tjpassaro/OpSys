@@ -2,6 +2,7 @@
 #define __cpu_h_
 #include <iostream>
 #include <list>
+#include <string>
 #include "process.h"
 
 using namespace std;
@@ -14,7 +15,7 @@ public:
 	//get methods
 	int getNextAction() const {return next_action;}
 	bool isEmpty() const {return ((ready.size() == 0) && !being_processed && !context_in && !context_out);}
-	
+	string printQueue();
 	//other methods
 	void add(Process* p, int rn);
 	Process* nextCpuAction(int rn);

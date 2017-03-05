@@ -16,13 +16,13 @@ void IO_Queue::add(Process* p){
             processes.insert(itr, p);
             break;
         }
-        if((*itr)->getNextActionTime() == p->getNextActionTime() && (*itr)->getProcessId()>p->getNextActionTime()){
+        if((*itr)->getNextActionTime() == p->getNextActionTime() && (*itr)->getProcessId()>p->getProcessId()){
             processes.insert(itr, p);
             break;
         }
     }
     if(itr == processes.begin())
-        next_pop = processes.front()-> getNextActionTime();
+        next_pop = processes.front()->getNextActionTime();
     if(itr == processes.end())
         processes.insert(itr, p);
 }

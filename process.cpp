@@ -20,6 +20,7 @@ Process::Process(int burst_t, int io_t, char process_id, int num_bursts, int arr
 void Process::moveToReady(int cur_time){
 	next_time = -1;
 	start_time = cur_time;
+	remaining_time = burst_time;
 }
 
 void Process::movedToCntxIn(int cur_time){
@@ -36,12 +37,15 @@ void Process::movedToCpu(int cur_time){
 void Process::movedFromCpu(int cur_time){
 	turnaround += cur_time-start_time;
 	remaining_time -= cur_time-start_time;
-	if(remaining_time == 0){
+	if(remaining_time == 0)
 		bursts_left--;
-		remaining_time = burst_time;
-	}
-	next_time = cur_time+io_time;
+	start_time = cur_time;
+}
+
+void Process::movedFromCntxOut(int cur_time){
+	turnaround += cur_time - start_time;
 	start_time = -1;
+	next_time = cur_time + io_time;
 }
 /*
 FCFS: first in first out queue
