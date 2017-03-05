@@ -2,7 +2,9 @@
 #define __cpu_h_
 #include <iostream>
 #include <list>
+#include <string>
 #include "process.h"
+using namespace std;
 
 class Cpu
 {
@@ -19,7 +21,7 @@ public:
 	Process popFromCpu(int rn); //removes whats in being_processed and returns it
 	void setContextSwitchTime(int t) {context_switch_time = t;}
 	void setTimeSlice(int t) {t_slice = t;}
-	char* printQueue();
+	string printQueue();
 
 private:
 	Process being_processed;

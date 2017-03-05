@@ -38,6 +38,7 @@ int main( int argc, char * argv[] )
     fout.open( argv[2], ifstream::out);
 
     processInfile(&fin);
+
 	for(int i = 0; i < 3; i++){
 		clock_time = 0;
 		IO_Queue ioq = IO_Queue();
@@ -54,16 +55,16 @@ int main( int argc, char * argv[] )
 			cpu = Cpu('r');
 			cout << "RR ";
 		}
-		cout << "[Q " << cpu.printQueue() << "]\n";
+		cout << cpu.printQueue();
 		
 		while( !(cpu.isEmpty()) || !(ioq.isEmpty()) || !(incoming.empty())){
 			cout << incoming.front().getStartActionTime() << " _\n";
 			//Adding in processes as they arrive
 			while(incoming.front().getStartActionTime() == clock_time){
-				cout << "ho\n";
 				Process p = incoming.front();//or *(incoming.begin())
 				incoming.pop_front();
 				cpu.add(p, clock_time);
+				cout << "time " << clock_time << "ms: Process " << p.getProcessId() << " arrived and added to ready queue " << cpu.printQueue();
 			}
 			//Takes finished I/O Processes and puts them in the cpu or done
 			while(ioq.getNextPop() == clock_time){

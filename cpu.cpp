@@ -3,6 +3,7 @@
 #include <iostream>
 #include <list>
 #include <stdio.h>
+#include <string>
 
 using namespace std;
 
@@ -37,6 +38,7 @@ void Cpu::load_on(int rn){
 		Process p = ready.front();
 		ready.pop_front();
 		p.movedToCpu(rn, context_switch_time);
+		cout << "time " << rn + context_switch_time << "ms: Process " << p.getProcessId() << " started using the CPU " << printQueue();
 		being_processed = p;
 		//Increments the next_pop field
 		if(flag=='f'||flag=='s')
@@ -78,13 +80,16 @@ void Cpu::srt_add(Process p){
 	if(itr == ready.end()){ready.push_back(p);}
 }
 
-char* Cpu::printQueue(){
-	char buf[100];
+string Cpu::printQueue(){
+	string buf = "[Q";
 	if(ready.empty())
-		sprintf(buf, "<empty>");
+		buf += " <empty>";
 	else{
-		for(list<Process>::iterator itr=ready.begin(); itr != ready.empty.end(); itr++)
-			sprintf(buf, "%s %c", buf, itr->getProcessId());
+		for(list<Process>::iterator itr=ready.begin(); itr != ready.end(); itr++){
+			buf += " ";
+			buf += itr->getProcessId();
+		}
 	}
-	return buf
+	buf += "]\n";
+	return buf;
 }
