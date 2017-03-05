@@ -1,24 +1,44 @@
 #ifndef __process_h_
 #define __process_h_
 #include <iostream>
+#include <cstdlib>
 
 class Process
 {
 public:
 	//Constructor
-	Process(int bt, int iot, int p, int bl, int w, int bsl, int nt, int st);
+	Process(int burst_t, int io_t, char process_id, int num_bursts, int arrival);
+	Process();
 	//From file
 	int getBurstTime() const {return burst_time;}
-	int IOTime() const {return io_time;}
-	int getPid() const {return pid;}
+	int getIOTime() const {return io_time;}
+	char getProcessId() const {return id;}
+	char* toString(){return str;}
 	//Run time
-	int getBurstLeft() const {return burst_left;}
+	int getRemainingTime() const {return remaining_time;}
 	int getTotalWait() const {return wait;}
+	int getTurnaroundTime() const {return turnaround;}
 	int getNumBurstsLeft() const {return bursts_left;}
 	//In each queue
 	int getNextActionTime() const {return next_time;}
 	int getStartActionTime() const {return start_time;}
-	bool operator<(const Process& lhs, const Process& rhs) const; 
+	void moveToReady(int cur_time);
+	void movedToCpu(int cur_time, int context_switch_time);
+	void movedFromCpu(int cur_time, int context_switch_time);
+private:
+	//From file
+	int burst_time;
+	int io_time;
+	char id;
+	//Run time
+	int remaining_time;
+	int wait;
+	int turnaround;
+	int bursts_left;
+	//In each queue
+	int next_time;
+	int start_time;
+	char str[100];
 };
 
 #endif
