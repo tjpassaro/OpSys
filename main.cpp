@@ -5,7 +5,6 @@
 #include "io_queue.h"
 #include "cpu.h"
 #include <list>
-#include <fstream>  
 #include "process.h"
 
 using namespace std;
@@ -36,8 +35,9 @@ int main( int argc, char * argv[] )
     	return EXIT_FAILURE;
     }
     fout.open( argv[2], ifstream::out);
-
+    cout << "pre process" <<endl;
     processInfile(&fin);
+    cout << "post process" << endl;
     
 	for(int i = 0; i < 3; i++){
 		clock_time = 0;
@@ -50,7 +50,6 @@ int main( int argc, char * argv[] )
 			cpu = Cpu('r');
 	
 		while( !(cpu.isEmpty()) || !(ioq.isEmpty()) || !(incoming.empty()) ){
-			
 			//Adding in processes as they arrive
 			while((*(incoming.begin()))->getStartActionTime() == clock_time){
 				Process* p = *(incoming.begin());
@@ -65,8 +64,10 @@ int main( int argc, char * argv[] )
 					cpu.add(p, clock_time);
 					cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed I/O; added to ready queue " << cpu.printQueue();
 				}
-				else
+				else{
 					cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " terminated" << cpu.printQueue();
+					delete p;
+				}
 			}
 			//If a process is finished/pre-empted 
 			//the process is reassigned to the correct queue
@@ -97,16 +98,19 @@ void processInfile(ifstream* in)
 	int burst;
 	int num_bur;
 	int io;
-	char* buf = NULL;
-	while(in->getline(buf, 100)) //until reach eof
+	string buf = "";
+	while(getline(*in, buf)) //until reach eof
 	{
 		//ignore if comment
-		if(*buf == '#')
+		if(buf[0] == '#')
 			continue;
-			
 		//create process from line
-		sscanf(buf, "%c|%i|%i|%i|%i", &id, &arrival, &burst, &num_bur, &io);
-		Process* temp = new Process(burst, io, id, num_bur, arrival); //create process
+		sscanf(buf.c_str(), "%c|%i|%i|%i|%i", &id, &arrival, &burst, &num_bur, &io);
+		cout << "post scan" << endl;
+		Process* temp;
+		cout << "temp made" << endl;
+		*temp = Process(burst, io, id, num_bur, arrival); //create process
+		cout << "temp filled" << endl;
 
 		//add to incoming Processes
 		for (list<Process*>::iterator itr=incoming.begin(); itr != incoming.end(); ++itr){
@@ -120,5 +124,7 @@ void processInfile(ifstream* in)
 				break;
 			}
 		}
+		cout << "end loop" << endl;
 	}
+	cout << "out of loop" << endl;
 }

@@ -1,6 +1,7 @@
 #ifndef __process_h_
 #define __process_h_
 #include <iostream>
+#include <string>
 
 class Process
 {
@@ -11,6 +12,7 @@ public:
 	int getBurstTime() const {return burst_time;}
 	int getIOTime() const {return io_time;}
 	char getProcessId() const {return id;}
+	char* toString() const {return str;}
 	//Run time
 	int getRemainingTime() const {return remaining_time;}
 	int getTotalWait() const {return wait;}
@@ -37,6 +39,7 @@ private:
 	//In each queue
 	int next_time;
 	int start_time;
+	char* str;
 };
 
 #endif

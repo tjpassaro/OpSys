@@ -1,4 +1,6 @@
 #include "process.h"
+#include <string>
+#include <stdio.h>
 
 using namespace std;
 
@@ -15,6 +17,7 @@ Process::Process(int burst_t, int io_t, char process_id, int num_bursts, int arr
 	//In each queue
 	next_time = arrival;
 	start_time = arrival;
+	sprintf(str, "%c|%i|%i|%i|%i", id, start_time, burst_time, num_bursts, io_time);
 }
 
 void Process::moveToReady(int cur_time){
