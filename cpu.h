@@ -20,8 +20,8 @@ public:
 	int getAverageWaitTime();
 	int getAverageTurnaroundTime();
 	int getAverageCPUTime() const {return total_burst_time/total_num_bursts;}
-	int getPreempts const {return preempts;}
-	int getSwitches const {return switches;}
+	int getPreempts() const {return preempts;}
+	int getSwitches() const {return switches;}
 	//other methods
 	void add(Process* p, int rn);
 	Process* nextCpuAction(int rn);

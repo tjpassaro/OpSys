@@ -15,11 +15,11 @@ Cpu cpu('f');
 list<Process*> incoming;
 
 void processInfile(ifstream* in);
-void statsToOutfile(Cpu* cpu, ifstream* out)
+void statsToOutfile(Cpu* cpu, fstream* out);
 
 int main( int argc, char * argv[] ){
 	ifstream fin;
-	ifstream fout;
+	fstream fout;
 
 	if(argc != 3){
 		cerr << "ERROR: incorrect usage\nUSAGE: ./a.out <input-file> <stats-output-file>" << endl;
@@ -31,7 +31,7 @@ int main( int argc, char * argv[] ){
     	cerr << "ERROR: file could not be openned" << endl;
     	return EXIT_FAILURE;
     }
-    fout.open( argv[2], ifstream::out);
+    fout.open( argv[2], fstream::out);
     processInfile(&fin);
     
 //     Define n as the number of processes to simulate. Note that this is determined via the input
@@ -133,7 +133,7 @@ void processInfile(ifstream* in){
 	}
 }
 
-void statsToOutfile(Cpu* cpu, ifstream* out)
+void statsToOutfile(Cpu* cpu, fstream* out)
 {
 	out << "Algorithm ";
 	if(cpu->getFlag() == 'f')
