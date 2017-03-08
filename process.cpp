@@ -15,8 +15,10 @@ Process::Process(int burst_t, int io_t, char process_id, int num_bursts, int arr
 	wait = 0;
 	turnaround = 0;
 	bursts_left = num_bursts;
-	wait_times = new int[num_bursts];
-	turnaround_times = new int[num_bursts];
+	wait_times = new int[num_bursts+1];
+		wait_times[0] = num_bursts; //first element is array size
+	turnaround_times = new int[num_bursts+1];
+		turnaround_times[0] = num_bursts; //first element is array size
 	//In each queue
 	next_time = arrival;
 	start_time = arrival;
@@ -50,8 +52,8 @@ void Process::movedFromCntxOut(int cur_time){
 	turnaround += cur_time - start_time;
 	if(remaining_time == 0){
 		//Add wait time to array
-		wait_times[total_num_bursts - bursts_left - 1] = wait;
-		turnaround_times[total_num_bursts - bursts_left - 1] = turnaround;
+		wait_times[total_num_bursts - bursts_left] = wait;
+		turnaround_times[total_num_bursts - bursts_left] = turnaround;
 		wait = 0;
 		turnaround = 0;
 		bursts_left--;

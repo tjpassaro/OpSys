@@ -135,16 +135,16 @@ void processInfile(ifstream* in){
 
 void statsToOutfile(Cpu* cpu, fstream* out)
 {
-	out << "Algorithm ";
+	*out << "Algorithm ";
 	if(cpu->getFlag() == 'f')
-		out << "FCFS" << endl;
+		*out << "FCFS" << endl;
 	else if(cpu->getFlag() == 's')
-		out << "SRT" << endl;
+		*out << "SRT" << endl;
 	else if(cpu->getFlag() == 'r')
-		out << "RR" << endl;
-	out << "-- average CPU burst time: " << cpu->getAverageCPUTime() << " ms" << endl;
-	out << "-- average wait time: " << cpu->getAverageWaitTime()
-	out << "-- average turnaround time: " << cpu->getAverageTurnaroundTime() << " ms" << endl;
-	out << "-- total number of context switches: " << cpu->getSwitches() << endl;
-	out << "-- total number of preemptions: " << cpu->getPreempts() << endl;
+		*out << "RR" << endl;
+	(*out) << "-- average CPU burst time: " << cpu->getAverageCPUTime() << " ms" << endl;
+	*out << "-- average wait time: " << cpu->getAverageWaitTime() << endl;
+	*out << "-- average turnaround time: " << cpu->getAverageTurnaroundTime() << " ms" << endl;
+	*out << "-- total number of context switches: " << cpu->getSwitches() << endl;
+	*out << "-- total number of preemptions: " << cpu->getPreempts() << endl;
 }

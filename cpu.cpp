@@ -155,35 +155,39 @@ string Cpu::printQueue(){
 	return buf;
 }
 
-/*void Cpu::takeInStats(Process* p){
+void Cpu::takeInStats(Process* p){
 	wait_times.push_back(p->getTurnStats());
 	turnaround_times.push_back(p->getWaitStats());
 	total_burst_time += p->getTotalBurstTime();
 	total_num_bursts += p->getTotalNumBursts();
-}*/
+}
 
-/*int Cpu::getAverageTurnaroundTime(){
+int Cpu::getAverageTurnaroundTime(){
 	int times;
 	int bursts;
+	int size;
 	
 	for(list<int*>::iterator itr=turnaround_times.begin(); itr != turnaround_times.begin(); itr++){
-		for(int i = 0; i < itr->size(); i++){
-			times += *itr[i];
-			bursts++;
-		}
-	}
-	return times/bursts;
-}*/
-
-/*int Cpu::getAverageWaitTime(){
-	int times;
-	int bursts;
-	
-	for(list<int*>::iterator itr=wait_times.begin(); itr != wait_times.begin(); itr++){
-		for(int i = 0; i < itr->size(); i++){
+		size = (*itr)[0];
+		for(int i = 1; i < size; i++){
 			times += (*itr)[i];
 			bursts++;
 		}
 	}
 	return times/bursts;
-}*/
+}
+
+int Cpu::getAverageWaitTime(){
+	int times;
+	int bursts;
+	int size;
+	
+	for(list<int*>::iterator itr=wait_times.begin(); itr != wait_times.begin(); itr++){
+		size = (*itr)[0];
+		for(int i = 1; i < size; i++){
+			times += (*itr)[i];
+			bursts++;
+		}
+	}
+	return times/bursts;
+}
