@@ -10,7 +10,7 @@ public:
 	//Constructor
 	IO_Queue();
 	int getNextPop() const {return next_pop;}
-	bool isEmpty() {return (processes.size() == 0);}
+	bool isEmpty() {return processes.empty();}
 	void add(Process* p);
 	Process* popFront();
 private:

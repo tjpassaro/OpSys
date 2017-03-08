@@ -57,6 +57,7 @@ void Cpu::loadOnCpu(int rn){
 		context_in->movedToCntxIn(rn);
 		//Increments the next_action field
 		next_action = rn+context_switch_time;
+		switches++;
 	}
 }
 
@@ -65,18 +66,23 @@ void Cpu::runProcess(int rn){
 	context_in = NULL;
 	being_processed->movedToCpu(rn);
 	//Increments the next_action field
-	if(flag=='f'||flag=='s')
+	if(flag=='f'||flag=='s'){
 		next_action = being_processed->getRemainingTime()+rn;
-	else //round-robin
+		cout << "here" << endl;
+	}
+	else{ //round-robin
 		if(being_processed->getRemainingTime()>t_slice)
 			next_action = t_slice + rn;
 		else
 			next_action = being_processed->getRemainingTime() + rn;
+	}
 }
 
 void Cpu::unloadOffCpu(int rn){
+	switches++;
 	context_out = being_processed;
 	being_processed = NULL;
+	cout << "time " << rn << "ms: Process " << context_out->getProcessId() << " switching out of CPU; will block on I/0 until time " << rn+context_switch_time+context_out->getIOTime() << "ms " << printQueue();
 	context_out->movedFromCpu(rn);
 	//Increments the next_action field
 	next_action = rn+context_switch_time;
@@ -114,16 +120,24 @@ void Cpu::fcfs_rr_add(Process* p){
 	ready.push_back(p);
 }
 void Cpu::srt_add(Process* p){
-	for (list<Process*>::iterator itr=ready.begin(); itr != ready.end(); ++itr){
-		if((*itr)->getRemainingTime() > p->getRemainingTime()){
-			ready.insert(itr, p);
-			break;
+	if(ready.empty()){
+		ready.push_front(p);
+	}
+	else{
+		list<Process*>::iterator itr;
+		for (itr=ready.begin(); itr != ready.end(); ++itr){
+			if((*itr)->getRemainingTime() > p->getRemainingTime()){
+				ready.insert(itr, p);
+				break;
+			}
+			// If equal the tie breaker is Process Id
+			if((*itr)->getRemainingTime() == p->getRemainingTime() && (*itr)->getProcessId() > p->getProcessId()){
+				ready.insert(itr, p);
+				break;
+			}
 		}
-		// If equal the tie breaker is Process Id
-		if((*itr)->getRemainingTime() == p->getRemainingTime() && (*itr)->getProcessId() > p->getProcessId()){
-			ready.insert(itr, p);
-			break;
-		}
+		if(itr == ready.end())
+			ready.push_back(p);
 	}
 }
 
@@ -140,3 +154,36 @@ string Cpu::printQueue(){
 	buf += "]\n";
 	return buf;
 }
+
+/*void Cpu::takeInStats(Process* p){
+	wait_times.push_back(p->getTurnStats());
+	turnaround_times.push_back(p->getWaitStats());
+	total_burst_time += p->getTotalBurstTime();
+	total_num_bursts += p->getTotalNumBursts();
+}*/
+
+/*int Cpu::getAverageTurnaroundTime(){
+	int times;
+	int bursts;
+	
+	for(list<int*>::iterator itr=turnaround_times.begin(); itr != turnaround_times.begin(); itr++){
+		for(int i = 0; i < itr->size(); i++){
+			times += *itr[i];
+			bursts++;
+		}
+	}
+	return times/bursts;
+}*/
+
+/*int Cpu::getAverageWaitTime(){
+	int times;
+	int bursts;
+	
+	for(list<int*>::iterator itr=wait_times.begin(); itr != wait_times.begin(); itr++){
+		for(int i = 0; i < itr->size(); i++){
+			times += (*itr)[i];
+			bursts++;
+		}
+	}
+	return times/bursts;
+}*/

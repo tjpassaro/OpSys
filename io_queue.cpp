@@ -10,21 +10,27 @@ IO_Queue::IO_Queue(){
 }
 
 void IO_Queue::add(Process* p){
-    list<Process*>::iterator itr;
-    for(itr = processes.begin(); itr != processes.end(); ++itr){
-        if((*itr)->getNextActionTime() > p->getNextActionTime()){
-            processes.insert(itr, p);
-            break;
-        }
-        if((*itr)->getNextActionTime() == p->getNextActionTime() && (*itr)->getProcessId()>p->getProcessId()){
-            processes.insert(itr, p);
-            break;
-        }
-    }
-    if(itr == processes.begin())
+    if(processes.empty()){
+        processes.push_front(p);
         next_pop = processes.front()->getNextActionTime();
-    if(itr == processes.end())
-        processes.insert(itr, p);
+    }
+    else{
+        list<Process*>::iterator itr;
+        for(itr = processes.begin(); itr != processes.end(); ++itr){
+            if((*itr)->getNextActionTime() > p->getNextActionTime()){
+                processes.insert(itr, p);
+                break;
+            }
+            if((*itr)->getNextActionTime() == p->getNextActionTime() && (*itr)->getProcessId()>p->getProcessId()){
+                processes.insert(itr, p);
+                break;
+            }
+        }
+        if(itr == processes.begin())
+            next_pop = processes.front()->getNextActionTime();
+        if(itr == processes.end())
+            processes.push_back(p);
+    }
 }
 
 Process* IO_Queue::popFront(){
