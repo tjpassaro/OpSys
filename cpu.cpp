@@ -212,11 +212,21 @@ void Cpu::srt_add(Process* p, int rn, bool preempt){
 						cout << "and will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
 						preempts++;
 						next_action = rn;
+						ready.insert(itr, p);
+						break;
+					}
+					else{
+						ready.insert(itr, p);
+						cout << "added to ready queue " << printQueue();
+						break;
 					}
 				}
-				ready.insert(itr, p);
-				cout << "added to ready queue " << printQueue();
-				break;
+				else{
+					ready.insert(itr, p);
+					if(!preempt)
+						cout << "added to ready queue " << printQueue();
+					break;
+				}
 			}
 			// If equal the tie breaker is Process Id
 			if((*itr)->getRemainingTime() == p->getRemainingTime() && (*itr)->getProcessId() > p->getProcessId()){
@@ -229,7 +239,7 @@ void Cpu::srt_add(Process* p, int rn, bool preempt){
 		if(itr == ready.end()){
 			ready.push_back(p);
 			if(!preempt)
-				cout << "added to ready queue " << printQueue();
+				cout << "4added to ready queue " << printQueue();
 		}
 	}
 }

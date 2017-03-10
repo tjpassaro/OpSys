@@ -174,7 +174,7 @@ void processInfile(ifstream* in){
 
 void statsToOutfile(Cpu* cpu, ofstream* out)
 {
-	double scale = 0.01;  // i.e. round to nearest one-hundreth
+	//double scale = 0.01;  // i.e. round to nearest one-hundreth
 	
 	*out << "Algorithm ";
 	if(cpu->getFlag() == 'f')
@@ -183,9 +183,9 @@ void statsToOutfile(Cpu* cpu, ofstream* out)
 		*out << "SRT" << endl;
 	else if(cpu->getFlag() == 'r')
 		*out << "RR" << endl;
-	*out << "-- average CPU burst time: " << fixed << setprecision(2) << (int)(cpu->getAverageCPUTime()/scale)*scale << " ms" << endl;
-	*out << "-- average wait time: " << fixed << setprecision(2) << (int)(cpu->getAverageWaitTime()/scale)*scale << " ms" << endl;
-	*out << "-- average turnaround time: " << fixed << setprecision(2) << (int)(cpu->getAverageTurnaroundTime()/scale)*scale << " ms" << endl;
+	*out << "-- average CPU burst time: " << fixed << setprecision(2) << /*(int)(*/cpu->getAverageCPUTime()/*/scale)*scale*/ << " ms" << endl;
+	*out << "-- average wait time: " << fixed << setprecision(2) << cpu->getAverageWaitTime() << " ms" << endl;
+	*out << "-- average turnaround time: " << fixed << setprecision(2) << cpu->getAverageTurnaroundTime() << " ms" << endl;
 	*out << "-- total number of context switches: " << cpu->getSwitches() << endl;
 	*out << "-- total number of preemptions: " << cpu->getPreempts() << endl;
 }
