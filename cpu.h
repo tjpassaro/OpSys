@@ -13,22 +13,22 @@ public:
 	//Constructor
 	Cpu(char algo_type);
 	//get methods
+	void del();
 	int getNextAction() const {return next_action;}
 	bool isEmpty() const {return ready.empty() && !being_processed && !context_in && !context_out;}
 	string printQueue();
 	char getFlag() const {return flag;}
-	int getAverageWaitTime();
-	int getAverageTurnaroundTime();
-	int getAverageCPUTime() const {return total_burst_time/total_num_bursts;}
+	double getAverageWaitTime();
+	double getAverageTurnaroundTime();
+	double getAverageCPUTime() const {return (double)total_burst_time/total_num_bursts;}
 	int getPreempts() const {return preempts;}
 	int getSwitches() const {return switches;}
 	//other methods
-	void add(Process* p, int rn);
+	void add(Process* p, int clock_time, bool preempt);
 	Process* nextCpuAction(int rn);
 	void setContextSwitchTime(int t) {context_switch_time = t;}
 	void setTimeSlice(int t) {t_slice = t;}
 	void takeInStats(Process* p);
-	void preempt(){preempts++;}
 
 private:
 	Process* being_processed;
@@ -50,8 +50,8 @@ private:
 		//s = srt
 	
 	//private methods
-	void fcfs_rr_add(Process* p);
-	void srt_add(Process* p);
+	void fcfs_rr_add(Process* p, bool preempt);
+	void srt_add(Process* p, int rn, bool preempt);
 	
 	void loadOnCpu(int rn);
 	void runProcess(int rn);

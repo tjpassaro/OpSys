@@ -11,15 +11,17 @@ using namespace std;
 
 //clock_time allows the queue objects to access the time
 int clock_time;
+int n = 0; //number of processes to simulate
+int m = 1; //number of processors (i.e., cores) available within the CPU; default is 1
 Cpu cpu('f');
-list<Process*> incoming;
+list<Process*> process_arrivals;
 
 void processInfile(ifstream* in);
-void statsToOutfile(Cpu* cpu, fstream* out);
+void statsToOutfile(Cpu* cpu, ofstream* out);
 
 int main( int argc, char * argv[] ){
 	ifstream fin;
-	fstream fout;
+	ofstream fout;
 
 	if(argc != 3){
 		cerr << "ERROR: incorrect usage\nUSAGE: ./a.out <input-file> <stats-output-file>" << endl;
@@ -28,70 +30,114 @@ int main( int argc, char * argv[] ){
 
     fin.open( argv[1], ifstream::in);
     if(!fin){
-    	cerr << "ERROR: file could not be openned" << endl;
+    	cerr << "ERROR: infile could not be openned" << endl;
     	return EXIT_FAILURE;
     }
-    fout.open( argv[2], fstream::out);
+    fout.open( argv[2], ofstream::out);
+    if(!fout){
+    	cerr << "ERROR: outfile could not be openned" << endl;
+    	return EXIT_FAILURE;
+    }
     processInfile(&fin);
-    
-//     Define n as the number of processes to simulate. Note that this is determined via the input
-//     file described below.
-//     Define m as the number of processors (i.e., cores) available within the CPU (use a default
-//     value of 1). (v1.1) We may use this in a future project, but we will not use this in Project 1.
-    
-	for(int i = 0; i < 3; i++){
+  
+	for(int i = 0; i < 3; i++){//fails half way through on second run regardless of what first
 		clock_time = 0;
 		IO_Queue ioq = IO_Queue();
-		if(i == 0)
+		list<Process*> incoming;
+		
+		//copy process_arrivals into incoming
+		for(list<Process*>::iterator itr = process_arrivals.begin(); itr != process_arrivals.end(); itr++){
+			Process *p = new Process();
+			*p = **itr;
+			incoming.push_back(p);
+		}
+		
+		cout << "time " << clock_time << "ms: Simulator started for ";
+		if(i == 0){
 			cpu = Cpu('f');
-		else if(i == 1)
+			cout << "FCFS ";}
+		else if(i == 1){
 			cpu = Cpu('s');
-		else
+			cout << "SRT ";}
+		else{
 			cpu = Cpu('r');
+			cout << "RR ";}
+		cout << cpu.printQueue();
+		
 		while( !(cpu.isEmpty()) || !(ioq.isEmpty()) || !(incoming.empty()) ){
+			// if(i ==1){
+			// 	for(list<Process*>::iterator itr = incoming.begin(); itr != incoming.end(); itr++){
+			// 		cout << (*itr)->getProcessId() << " time: " << (*itr)->getStartActionTime() << endl;
+			// 	}
+			// 	break;
+			// }
+			
+			
 			//Adding in processes as they arrive
-			while((*(incoming.begin()))->getStartActionTime() == clock_time){
+			while(!incoming.empty() && incoming.front()->getStartActionTime() == clock_time){
 				Process* p = *(incoming.begin());
 				incoming.pop_front();
-				cpu.add(p, clock_time);
-				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " arrived and added to ready queue " << cpu.printQueue();
+				p->allocateArrays();
+				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " arrived and ";
+				cpu.add(p, clock_time, false);
 			}
-			
+
 			//Takes finished I/O Processes and puts them in the cpu or done
 			while(ioq.getNextPop() == clock_time){
 				Process* p = ioq.popFront();
-				cpu.add(p, clock_time);
-				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed I/O; added to ready queue " << cpu.printQueue();
+				p->resetBurst();
+				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed I/O; ";
+				cpu.add(p, clock_time, false);
 			}
-			//If a process is finished/pre-empted in CPU
-			//the process is reassigned to the correct queue
-			if(cpu.getNextAction() == clock_time){
+			
+			//If a process is finished/pre-empted in CPU the process is reassigned to the correct queue
+			while(cpu.getNextAction() == clock_time){
 				Process* p = cpu.nextCpuAction(clock_time);
 				if(p){
 					//finished CPU burst; move to I/O
 					if(p->getRemainingTime() == 0){
-						if(p->getNumBurstsLeft() == 0){
-							cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed a CPU burst; " << p->getNumBurstsLeft() << " bursts to go " << cpu.printQueue();
+						if(p->getNumBurstsLeft() != 0){
 							ioq.add(p);
 						}
 						else{
-							cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " terminated" << cpu.printQueue();
-							//cpu.takeInStats(p);
-							p->del();
+							cpu.takeInStats(p);
+						//	p->del();
 							delete p;
 						}
 					}
 					//pre-empted; move to back of CPU queue
 					else{
-						cpu.preempt();
-						cpu.add(p, clock_time);
+						cout << "THIS IS HOW WE DO IT" << endl;
+						cpu.add(p, clock_time, true);
 					}
 				}
 			}
 			clock_time++;
 		}
-		//statsToOutfile(&cpu, &fout);
+		//simulator ended
+		
+		cout << "time " << --clock_time << "ms: Simulator ended for ";
+		if(i == 0)
+			cout << "FCFS";
+		else if(i == 1)
+			cout << "SRT";
+		else
+			cout << "RR";
+		cout << endl << endl;
+		
+		statsToOutfile(&cpu, &fout);
+		
+		cpu.del();
 	}
+	
+	fin.close();
+	fout.close();
+	
+	//delete process_arrival list
+	for(list<Process*>::iterator itr = process_arrivals.begin(); itr != process_arrivals.end(); itr++){
+		delete (*itr);
+	}
+		
 	return EXIT_SUCCESS;
 }
 
@@ -103,6 +149,7 @@ void processInfile(ifstream* in){
 	int io;
 	string buf = "";
 	while(getline(*in, buf)){ //until reach eof
+		n++;
 		//ignore if comment
 		if(buf[0] == '#')
 			continue;
@@ -110,30 +157,31 @@ void processInfile(ifstream* in){
 		sscanf(buf.c_str(), "%c|%i|%i|%i|%i", &id, &arrival, &burst, &num_bur, &io);
 		Process* temp = new Process(burst, io, id, num_bur, arrival); //create process
 		
-		if(incoming.empty()){
-			incoming.push_front(temp);
+		if(process_arrivals.empty()){//add first element
+			process_arrivals.push_front(temp);
 		}
 		else{
-			//add to incoming Processes
+			//add to process_arrivals in order of arrival time
 			list<Process*>::iterator itr;
-			for (itr=incoming.begin(); itr != incoming.end(); ++itr){
+			for (itr=process_arrivals.begin(); itr != process_arrivals.end(); ++itr){
 				if((*itr)->getStartActionTime() > temp->getStartActionTime()){
-					incoming.insert(itr, temp);
+					process_arrivals.insert(itr, temp);
 					break;
 				}
 				// If equal the tie breaker is Process Id
 				if((*itr)->getStartActionTime() == temp->getStartActionTime() && (*itr)->getProcessId() > temp->getProcessId()){
-					incoming.insert(itr, temp);
+					process_arrivals.insert(itr, temp);
 					break;
 				}
 			}
-			if(itr == incoming.end())
-				incoming.push_back(temp);
+			//add to end of list
+			if(itr == process_arrivals.end())
+				process_arrivals.push_back(temp);
 		}
 	}
 }
 
-void statsToOutfile(Cpu* cpu, fstream* out)
+void statsToOutfile(Cpu* cpu, ofstream* out)
 {
 	*out << "Algorithm ";
 	if(cpu->getFlag() == 'f')
@@ -142,8 +190,8 @@ void statsToOutfile(Cpu* cpu, fstream* out)
 		*out << "SRT" << endl;
 	else if(cpu->getFlag() == 'r')
 		*out << "RR" << endl;
-	(*out) << "-- average CPU burst time: " << cpu->getAverageCPUTime() << " ms" << endl;
-	*out << "-- average wait time: " << cpu->getAverageWaitTime() << endl;
+	*out << "-- average CPU burst time: " << cpu->getAverageCPUTime() << " ms" << endl;
+	*out << "-- average wait time: " << cpu->getAverageWaitTime() << " ms" << endl;
 	*out << "-- average turnaround time: " << cpu->getAverageTurnaroundTime() << " ms" << endl;
 	*out << "-- total number of context switches: " << cpu->getSwitches() << endl;
 	*out << "-- total number of preemptions: " << cpu->getPreempts() << endl;

@@ -12,6 +12,7 @@ public:
 	int getNextPop() const {return next_pop;}
 	bool isEmpty() {return processes.empty();}
 	void add(Process* p);
+	void printQueue();
 	Process* popFront();
 private:
 	int next_pop;
