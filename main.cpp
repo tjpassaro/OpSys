@@ -114,7 +114,7 @@ int main( int argc, char * argv[] ){
 			cout << "SRT";
 		else
 			cout << "RR";
-		cout << endl << endl;
+		cout << endl;
 		
 		statsToOutfile(&cpu, &fout);
 		
