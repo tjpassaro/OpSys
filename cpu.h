@@ -11,11 +11,11 @@ class Cpu
 {
 public:
 	//Constructor
-	Cpu(char algo_type);
+	Cpu(int num_cores,char algo_type);
 	//get methods
 	void del();
 	int getNextAction() const {return next_action;}
-	bool isEmpty() const {return ready.empty() && !being_processed && !context_in && !context_out;}
+	bool isEmpty() const;
 	string printQueue();
 	char getFlag() const {return flag;}
 	double getAverageWaitTime();
@@ -31,9 +31,9 @@ public:
 	void takeInStats(Process* p);
 
 private:
-	Process* being_processed;
-	Process* context_in;
-	Process* context_out;
+	Process** being_processed;
+	Process** context_in;
+	Process** context_out;
 	list<Process*> ready;
 	list<int*> wait_times;
 	list<int*> turnaround_times;

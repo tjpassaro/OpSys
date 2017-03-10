@@ -5,6 +5,7 @@
 #include "io_queue.h"
 #include "cpu.h"
 #include <list>
+#include <iomanip> 
 #include "process.h"
 
 using namespace std;
@@ -13,7 +14,7 @@ using namespace std;
 int clock_time;
 int n = 0; //number of processes to simulate
 int m = 1; //number of processors (i.e., cores) available within the CPU; default is 1
-Cpu cpu('f');
+Cpu cpu(m, 'f');
 list<Process*> process_arrivals;
 
 void processInfile(ifstream* in);
@@ -54,25 +55,17 @@ int main( int argc, char * argv[] ){
 		
 		cout << "time " << clock_time << "ms: Simulator started for ";
 		if(i == 0){
-			cpu = Cpu('f');
+			cpu = Cpu(m, 'f');
 			cout << "FCFS ";}
 		else if(i == 1){
-			cpu = Cpu('s');
+			cpu = Cpu(m, 's');
 			cout << "SRT ";}
 		else{
-			cpu = Cpu('r');
+			cpu = Cpu(m, 'r');
 			cout << "RR ";}
 		cout << cpu.printQueue();
 		
 		while( !(cpu.isEmpty()) || !(ioq.isEmpty()) || !(incoming.empty()) ){
-			// if(i ==1){
-			// 	for(list<Process*>::iterator itr = incoming.begin(); itr != incoming.end(); itr++){
-			// 		cout << (*itr)->getProcessId() << " time: " << (*itr)->getStartActionTime() << endl;
-			// 	}
-			// 	break;
-			// }
-			
-			
 			//Adding in processes as they arrive
 			while(!incoming.empty() && incoming.front()->getStartActionTime() == clock_time){
 				Process* p = *(incoming.begin());
@@ -101,13 +94,11 @@ int main( int argc, char * argv[] ){
 						}
 						else{
 							cpu.takeInStats(p);
-						//	p->del();
 							delete p;
 						}
 					}
 					//pre-empted; move to back of CPU queue
 					else{
-						cout << "THIS IS HOW WE DO IT" << endl;
 						cpu.add(p, clock_time, true);
 					}
 				}
@@ -183,6 +174,8 @@ void processInfile(ifstream* in){
 
 void statsToOutfile(Cpu* cpu, ofstream* out)
 {
+	double scale = 0.01;  // i.e. round to nearest one-hundreth
+	
 	*out << "Algorithm ";
 	if(cpu->getFlag() == 'f')
 		*out << "FCFS" << endl;
@@ -190,9 +183,9 @@ void statsToOutfile(Cpu* cpu, ofstream* out)
 		*out << "SRT" << endl;
 	else if(cpu->getFlag() == 'r')
 		*out << "RR" << endl;
-	*out << "-- average CPU burst time: " << cpu->getAverageCPUTime() << " ms" << endl;
-	*out << "-- average wait time: " << cpu->getAverageWaitTime() << " ms" << endl;
-	*out << "-- average turnaround time: " << cpu->getAverageTurnaroundTime() << " ms" << endl;
+	*out << "-- average CPU burst time: " << fixed << setprecision(2) << (int)(cpu->getAverageCPUTime()/scale)*scale << " ms" << endl;
+	*out << "-- average wait time: " << fixed << setprecision(2) << (int)(cpu->getAverageWaitTime()/scale)*scale << " ms" << endl;
+	*out << "-- average turnaround time: " << fixed << setprecision(2) << (int)(cpu->getAverageTurnaroundTime()/scale)*scale << " ms" << endl;
 	*out << "-- total number of context switches: " << cpu->getSwitches() << endl;
 	*out << "-- total number of preemptions: " << cpu->getPreempts() << endl;
 }

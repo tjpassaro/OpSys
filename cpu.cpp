@@ -7,7 +7,7 @@
 using namespace std;
 
 //Constructor
-Cpu::Cpu(char algo_type){
+Cpu::Cpu(int num_cores, char algo_type){
 	if(algo_type != 'f' && algo_type != 'r' && algo_type != 's')
 		cerr << "ERROR: incorrect flag\n\tf = fcfs\n\tr = rr\n\ts = srt" << endl;
 	flag = algo_type;
@@ -17,22 +17,30 @@ Cpu::Cpu(char algo_type){
 		t_slice = 94;
 	else
 		t_slice = -1;
-	being_processed = NULL;
-	context_in = NULL;
-	context_out = NULL;
+	
+	being_processed = new Process*[num_cores];
+	context_in = new Process*[num_cores];
+	context_out = new Process*[num_cores];
+	
+	being_processed[0] = NULL;
+	context_in[0] = NULL;
+	context_out[0] = NULL;
 	preempts = 0;
 	switches = 0;
 	total_burst_time = 0;
 	total_num_bursts = 0;
 }
 
-
 void Cpu::del(){
 	for(list<int*>::iterator itr=wait_times.begin(); itr != wait_times.end(); itr++)
 		delete[] (*itr);
 	for(list<int*>::iterator itr=turnaround_times.begin(); itr != turnaround_times.end(); itr++)
 		delete[] (*itr);
+	delete[] being_processed;
+	delete[] context_in;
+	delete[] context_out;
 }
+
 void Cpu::add(Process* p, int rn, bool preempt){
 	p->moveToReady(rn);
 	if(isEmpty()){
@@ -44,14 +52,19 @@ void Cpu::add(Process* p, int rn, bool preempt){
 		srt_add(p, rn, preempt);
 }
 
+bool Cpu::isEmpty() const{
+	return ready.empty() && !being_processed[0] && !context_in[0] && !context_out[0];
+}
+
 Process* Cpu::nextCpuAction(int rn){
-	if(!context_in && !being_processed && !context_out)
+	if(!context_in[0] && !being_processed[0] && !context_out[0]){
 		loadOnCpu(rn);
+	}
 	
-	else if(context_in && !being_processed && !context_out)
+	else if(context_in[0] && !being_processed[0] && !context_out[0])
 		runProcess(rn);
 	
-	else if(!context_in && being_processed && !context_out)
+	else if(!context_in[0] && being_processed[0] && !context_out[0])
 		unloadOffCpu(rn);
 	
 	else
@@ -62,9 +75,9 @@ Process* Cpu::nextCpuAction(int rn){
 
 void Cpu::loadOnCpu(int rn){
 	if(ready.size() != 0){
-		context_in = ready.front();
+		context_in[0] = ready.front();
 		ready.pop_front();
-		context_in->movedToCntxIn(rn);
+		context_in[0]->movedToCntxIn(rn);
 		//Increments the next_action field
 		next_action = rn+context_switch_time;
 		switches++;
@@ -72,59 +85,59 @@ void Cpu::loadOnCpu(int rn){
 }
 
 void Cpu::runProcess(int rn){
-	if(context_in->getRemainingTime() != context_in->getBurstTime())
-		cout << "time " << rn << "ms: Process " << context_in->getProcessId() << " started using the CPU with " << context_in->getRemainingTime() << "ms remaining "<< printQueue();
+	if(context_in[0]->getRemainingTime() != context_in[0]->getBurstTime())
+		cout << "time " << rn << "ms: Process " << context_in[0]->getProcessId() << " started using the CPU with " << context_in[0]->getRemainingTime() << "ms remaining "<< printQueue();
 	else
-		cout << "time " << rn << "ms: Process " << context_in->getProcessId() << " started using the CPU " << printQueue();
-	being_processed = context_in;
-	context_in = NULL;
-	being_processed->movedToCpu(rn);
+		cout << "time " << rn << "ms: Process " << context_in[0]->getProcessId() << " started using the CPU " << printQueue();
+	being_processed[0] = context_in[0];
+	context_in[0] = NULL;
+	being_processed[0]->movedToCpu(rn);
 	//Increments the next_action field
 	if(flag=='f'){
-		next_action = being_processed->getRemainingTime() + rn;
+		next_action = being_processed[0]->getRemainingTime() + rn;
 	}
 	else if(flag=='s'){
-			if(!ready.empty() && being_processed->getRemainingTime() > ready.front()->getRemainingTime()){
+			if(!ready.empty() && being_processed[0]->getRemainingTime() > ready.front()->getRemainingTime()){
 				unloadOffCpu(rn);
 			}
 			else
-				next_action = being_processed->getRemainingTime() + rn;
+				next_action = being_processed[0]->getRemainingTime() + rn;
 	}
 	else{ //round-robin
-		if(being_processed->getRemainingTime()>t_slice)
+		if(being_processed[0]->getRemainingTime()>t_slice)
 			next_action = t_slice + rn;
 		else
-			next_action = being_processed->getRemainingTime() + rn;
+			next_action = being_processed[0]->getRemainingTime() + rn;
 	}
 }
 
 void Cpu::unloadOffCpu(int rn){
-	being_processed->updateRemainingTime(rn);
-	if(flag=='r' && ready.empty() && being_processed->getRemainingTime()!=0)
+	being_processed[0]->updateRemainingTime(rn);
+	if(flag=='r' && ready.empty() && being_processed[0]->getRemainingTime()!=0)
 	{
 		cout << "time " << rn << "ms: Time slice expired; no preemption because ready queue is empty " << printQueue();
-		if(being_processed->getRemainingTime()>t_slice)
+		if(being_processed[0]->getRemainingTime()>t_slice)
 			next_action = t_slice + rn;
 		else
-			next_action = being_processed->getRemainingTime() + rn;
+			next_action = being_processed[0]->getRemainingTime() + rn;
 	}
 	else{
-		context_out = being_processed;
-		being_processed = NULL;
-		context_out->movedFromCpu(rn);
-		if(context_out->getRemainingTime() == 0){
-			if(context_out->getNumBurstsLeft()!=0){
-				cout << "time " << rn << "ms: Process " << context_out->getProcessId() << " completed a CPU burst; " << context_out->getNumBurstsLeft() << " burst";
-				if(context_out->getNumBurstsLeft() != 1)
+		context_out[0] = being_processed[0];
+		being_processed[0] = NULL;
+		context_out[0]->movedFromCpu(rn);
+		if(context_out[0]->getRemainingTime() == 0){
+			if(context_out[0]->getNumBurstsLeft()!=0){
+				cout << "time " << rn << "ms: Process " << context_out[0]->getProcessId() << " completed a CPU burst; " << context_out[0]->getNumBurstsLeft() << " burst";
+				if(context_out[0]->getNumBurstsLeft() != 1)
 					cout << "s";
 				cout << " to go " << printQueue();
-				cout << "time " << rn << "ms: Process " << context_out->getProcessId() << " switching out of CPU; will block on I/O until time " << rn+context_switch_time+context_out->getIOTime() << "ms " << printQueue();
+				cout << "time " << rn << "ms: Process " << context_out[0]->getProcessId() << " switching out of CPU; will block on I/O until time " << rn+context_switch_time+context_out[0]->getIOTime() << "ms " << printQueue();
 			}
 			else
-				cout << "time " << rn << "ms: Process " << context_out->getProcessId() << " terminated " << printQueue();
+				cout << "time " << rn << "ms: Process " << context_out[0]->getProcessId() << " terminated " << printQueue();
 		}
 		else if(flag=='r'){
-			cout << "time " << rn << "ms: Time slice expired; process " << context_out->getProcessId() << " preempted with " << context_out->getRemainingTime() << "ms to go " << printQueue();
+			cout << "time " << rn << "ms: Time slice expired; process " << context_out[0]->getProcessId() << " preempted with " << context_out[0]->getRemainingTime() << "ms to go " << printQueue();
 		}
 		//Increments the next_action field
 		next_action = rn+context_switch_time;
@@ -133,8 +146,8 @@ void Cpu::unloadOffCpu(int rn){
 
 
 Process* Cpu::popFromCpu(int rn){
-	Process* temp = context_out;
-	context_out = NULL;
+	Process* temp = context_out[0];
+	context_out[0] = NULL;
 	next_action = -1;
 	temp->movedFromCntxOut(rn);
 	loadOnCpu(rn);
@@ -148,7 +161,7 @@ Process* Cpu::popFromCpu(int rn){
 		Process* p = *(ready.begin());
 		ready.pop_front();
 		p->movedToCpu(rn, context_switch_time);
-		being_processed = p;
+		being_processed[0] = p;
 		//Increments the next_action field
 		if(flag=='f'||flag=='s')
 			next_action = p->getRemainingTime()+context_switch_time;
@@ -169,16 +182,20 @@ void Cpu::fcfs_rr_add(Process* p, bool preempt){
 }
 void Cpu::srt_add(Process* p, int rn, bool preempt){
 	if(ready.empty()){
-		if(being_processed){
-			being_processed->updateRemainingTime(rn);
-			if(being_processed->getRemainingTime() > p->getRemainingTime()){
-				cout << "will preempt " << being_processed->getProcessId() << " " << printQueue();
+		if(being_processed[0]){
+			being_processed[0]->updateRemainingTime(rn);
+			if(being_processed[0]->getRemainingTime() > p->getRemainingTime()){
+				cout << "will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
 				preempts++;
-				ready.push_back(being_processed);
-				being_processed = NULL;
-				next_action = rn + 3; //not quite sure if this plus 3 makes it work in all casses
+				ready.push_back(being_processed[0]);
+				being_processed[0] = NULL;
+				next_action = rn + context_switch_time; //not quite sure if this plus 3 makes it work in all casses
+				ready.push_front(p);
 			}
-			ready.push_front(p);
+			else{
+				ready.push_front(p);
+				cout << "added to ready queue " << printQueue();
+			}
 		}
 		else if(!preempt){
 			ready.push_front(p);
@@ -189,15 +206,16 @@ void Cpu::srt_add(Process* p, int rn, bool preempt){
 		list<Process*>::iterator itr;
 		for (itr=ready.begin(); itr != ready.end(); ++itr){
 			if((*itr)->getRemainingTime() > p->getRemainingTime()){
-				if(itr == ready.begin() && being_processed){
-					being_processed->updateRemainingTime(rn);
-					if(being_processed->getRemainingTime() > p->getRemainingTime()){
-						cout << "and will preempt " << being_processed->getProcessId() << " " << printQueue();
+				if(itr == ready.begin() && being_processed[0]){
+					being_processed[0]->updateRemainingTime(rn);
+					if(being_processed[0]->getRemainingTime() > p->getRemainingTime()){
+						cout << "and will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
 						preempts++;
 						next_action = rn;
 					}
 				}
 				ready.insert(itr, p);
+				cout << "added to ready queue " << printQueue();
 				break;
 			}
 			// If equal the tie breaker is Process Id
