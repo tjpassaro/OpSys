@@ -185,7 +185,7 @@ void Cpu::srt_add(Process* p, int rn, bool preempt){
 		if(being_processed[0]){
 			being_processed[0]->updateRemainingTime(rn);
 			if(being_processed[0]->getRemainingTime() > p->getRemainingTime()){
-				cout << "and will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
+				cout << "will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
 				preempts++;
 				ready.push_back(being_processed[0]);
 				being_processed[0] = NULL;
@@ -209,7 +209,7 @@ void Cpu::srt_add(Process* p, int rn, bool preempt){
 				if(itr == ready.begin() && being_processed[0]){
 					being_processed[0]->updateRemainingTime(rn);
 					if(being_processed[0]->getRemainingTime() > p->getRemainingTime()){
-						cout << "and will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
+						cout << "will preempt " << being_processed[0]->getProcessId() << " " << printQueue();
 						preempts++;
 						next_action = rn;
 						ready.insert(itr, p);

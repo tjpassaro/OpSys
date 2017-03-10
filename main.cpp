@@ -109,9 +109,9 @@ int main( int argc, char * argv[] ){
 		
 		cout << "time " << --clock_time << "ms: Simulator ended for ";
 		if(i == 0)
-			cout << "FCFS";
+			cout << "FCFS" << endl;
 		else if(i == 1)
-			cout << "SRT";
+			cout << "SRT"<< endl;
 		else
 			cout << "RR";
 		cout << endl;
