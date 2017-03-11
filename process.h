@@ -14,11 +14,12 @@ public:
 	void del();
 	void allocateArrays();
 	
+	//Accessors
 	int getBurstTime() const {return burst_time;}
 	int getIOTime() const {return io_time;}
 	char getProcessId() const {return id;}
+	int getArrivalTime() const {return arrival_time;}
 	char* toString() {return str;}
-	//Accessors
 	int getRemainingTime() const {return remaining_time;}
 	int getTotalWait() const {return wait;}
 	int getTurnaroundTime() const {return turnaround;}
@@ -39,6 +40,7 @@ public:
 	void movedFromCpu(int cur_time);
 	void movedFromCntxOut(int cur_time);
 	void updateRemainingTime(int cur_time);
+	bool operator==(const Process& rhs) const;
 private:
 	//From file
 	int burst_time;

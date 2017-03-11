@@ -12,12 +12,13 @@ class Cpu
 public:
 	//Constructor
 	Cpu(int num_cores,char algo_type);
-	//get methods
+	//Deletes dynamically allocated elements
 	void del();
-	int getNextAction() const {return next_action;}
+	//Gets and other accessor methods
 	bool isEmpty() const;
 	string printQueue();
 	char getFlag() const {return flag;}
+	int getNextAction() const {return next_action;}
 	double getAverageWaitTime();
 	double getAverageTurnaroundTime();
 	double getAverageCPUTime() const {return (double)total_burst_time/total_num_bursts;}
@@ -31,16 +32,19 @@ public:
 	void takeInStats(Process* p);
 
 private:
-	Process** being_processed;
-	Process** context_in;
-	Process** context_out;
+	//The each array index represents a core
+	Process** being_processed; //Array of processes in cores
+	Process** context_in; //Array of processes switching into cores
+	Process** context_out; //Array of processes switching out of cores
+	//Ready queue
 	list<Process*> ready;
+	//Wait times and turnaround times of terminated processes
 	list<int*> wait_times;
 	list<int*> turnaround_times;
 	int total_burst_time;
 	int total_num_bursts;
 	int context_switch_time; //Represents switching a process off OR on (half the given value)
-	int next_action;
+	int next_action; //Next time the cpu makes an action
 	int preempts;
 	int switches;
 	int t_slice;
@@ -50,13 +54,13 @@ private:
 		//s = srt
 	
 	//private methods
-	void fcfs_rr_add(Process* p, bool preempt);
-	void srt_add(Process* p, int rn, bool preempt);
+	void fcfs_rr_add(Process* p, bool preempt); //Add for fcfs and rr (first in first out)
+	void srt_add(Process* p, int rn, bool preempt); //Add for srt (mininum to maximum)
 	
-	void loadOnCpu(int rn);
-	void runProcess(int rn);
-	void unloadOffCpu(int rn);
-	Process* popFromCpu(int rn); //removes whats in being_processed and returns it
+	void loadOnCpu(int rn); //Puts a process into context_in
+	void runProcess(int rn); //Moves process from context_in to being_processed
+	void unloadOffCpu(int rn); //Moves process from being_processed to context_out
+	Process* popFromCpu(int rn); //removes whats in context_out and returns it
 };
 
 #endif

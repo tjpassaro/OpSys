@@ -115,6 +115,11 @@ int* Process::getTurnStats(){
 	return ret;
 }
 
+
+bool Process::operator==(const Process& rhs) const{
+	return (id == rhs.getProcessId() && start_time == rhs.getArrivalTime() && burst_time == rhs.getBurstTime() && total_num_bursts == rhs.getTotalNumBursts() && io_time == rhs.getIOTime());
+}
+
 /*
 FCFS: first in first out queue
 SRT: priority queue with compare function

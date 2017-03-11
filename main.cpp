@@ -65,24 +65,10 @@ int main( int argc, char * argv[] ){
 			cout << "RR ";}
 		cout << cpu.printQueue();
 		
+		bool in_incoming = false;
+		bool in_ioq = false;
 		while( !(cpu.isEmpty()) || !(ioq.isEmpty()) || !(incoming.empty()) ){
-			//Adding in processes as they arrive
-			while(!incoming.empty() && incoming.front()->getStartActionTime() == clock_time){
-				Process* p = *(incoming.begin());
-				incoming.pop_front();
-				p->allocateArrays();
-				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " arrived and ";
-				cpu.add(p, clock_time, false);
-			}
-
-			//Takes finished I/O Processes and puts them in the cpu or done
-			while(ioq.getNextPop() == clock_time){
-				Process* p = ioq.popFront();
-				p->resetBurst();
-				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed I/O; ";
-				cpu.add(p, clock_time, false);
-			}
-			
+	
 			//If a process is finished/pre-empted in CPU the process is reassigned to the correct queue
 			while(cpu.getNextAction() == clock_time){
 				Process* p = cpu.nextCpuAction(clock_time);
@@ -102,6 +88,30 @@ int main( int argc, char * argv[] ){
 						cpu.add(p, clock_time, true);
 					}
 				}
+			}
+			
+			//Takes finished I/O Processes and puts them in the cpu or done
+			while(ioq.getNextPop() == clock_time){
+				in_ioq = true;
+				Process* p = ioq.popFront();
+				p->resetBurst();
+				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " completed I/O; ";
+				cpu.add(p, clock_time, false);
+			}
+			
+			//Adding in processes as they arrive
+			while(!incoming.empty() && incoming.front()->getStartActionTime() == clock_time){
+				in_incoming = true;
+				Process* p = *(incoming.begin());
+				incoming.pop_front();
+				p->allocateArrays();
+				cout << "time " << clock_time << "ms: Process " << p->getProcessId() << " arrived and ";
+				cpu.add(p, clock_time, false);
+			}
+			if(in_incoming||in_ioq){
+				in_incoming = false;
+				in_ioq = false;
+				clock_time--;
 			}
 			clock_time++;
 		}
@@ -155,6 +165,8 @@ void processInfile(ifstream* in){
 			//add to process_arrivals in order of arrival time
 			list<Process*>::iterator itr;
 			for (itr=process_arrivals.begin(); itr != process_arrivals.end(); ++itr){
+				if(**itr == *temp)
+					break;
 				if((*itr)->getStartActionTime() > temp->getStartActionTime()){
 					process_arrivals.insert(itr, temp);
 					break;

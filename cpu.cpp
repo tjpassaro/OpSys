@@ -13,6 +13,8 @@ Cpu::Cpu(int num_cores, char algo_type){
 	flag = algo_type;
 	context_switch_time = 3; //half given
 
+	next_action = -1;
+	
 	if(flag == 'r')
 		t_slice = 94;
 	else
@@ -41,7 +43,9 @@ void Cpu::del(){
 	delete[] context_out;
 }
 
+//Calls the correct add function based on the cpu state
 void Cpu::add(Process* p, int rn, bool preempt){
+	//Updates the Process variables for their internal time tracking
 	p->moveToReady(rn);
 	if(isEmpty()){
 		next_action = rn;

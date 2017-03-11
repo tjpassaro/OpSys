@@ -6,9 +6,10 @@
 using namespace std;
 
 IO_Queue::IO_Queue(){
-    next_pop = -999;
+    next_pop = -1;
 }
 
+//Adds elements in ascending time order
 void IO_Queue::add(Process* p){
     if(processes.empty()){
         processes.push_front(p);
@@ -17,40 +18,30 @@ void IO_Queue::add(Process* p){
     else{
         list<Process*>::iterator itr;
         for(itr = processes.begin(); itr != processes.end(); ++itr){
-            //cout << "enter for loop\n";
-            //cout << "check itr: " << (*itr)->toString() << endl;
-            //cout << "check p: " << p->toString() << endl;
+            //If it's time is up before the current element than insert 
             if((*itr)->getNextActionTime() > p->getNextActionTime()){
-                //cout << "enter if(itr > p)\npre insert\n";
-                // if(itr == processes.begin()){
-                //     //cout << "adding to front\n";
-                //     processes.push_front(p);
-                //     //cout << "added to front\n";
-                // }
-               // else 
-                    processes.insert(itr, p);
-                    //cout << "post insert \n";
+                processes.insert(itr, p);
                 break;
             }
-            //cout << "before tie breaker\n";
+            //If tied go by Process Id
             if((*itr)->getNextActionTime() == p->getNextActionTime() && (*itr)->getProcessId()>p->getProcessId()){
-                //cout << "enter tie breaker\npre insert\n";
                 processes.insert(itr, p);
-                //cout << "post insert\n";
                 break;
             }
         }
+        //If it was added in the first element then set the new action time
         if(p == processes.front()){
-            //cout << "p == process.front\n";
             next_pop = processes.front()->getNextActionTime();
         }
+        //If last push at back
         if(itr == processes.end()){
-            //cout << "itr reached end\n";
             processes.push_back(p);
         }
     }
 }
 
+//Pops first element and returns it
+//Updates next_pop
 Process* IO_Queue::popFront(){
     Process* p = processes.front();
     processes.pop_front();
